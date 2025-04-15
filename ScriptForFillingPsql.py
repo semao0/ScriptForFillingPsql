@@ -43,8 +43,8 @@ def migrate_exel_to_psql_conf():
 
         for sheet in sheet_names:
             df = xls[sheet]
-            df.to_sql(sheet, engine, if_exists="append", index=False)
-            log_scroll.insert(tk.END, f"Loaded {sheet} with {len(df)} entries")
+            df.to_sql(sheet, engine, if_exists=if_exists.get(), index=False)
+            log_scroll.insert(tk.END, f"Loaded {sheet} with {len(df)} entries \n")
         log_scroll.insert(tk.END, "Successful download.")
     except Exception as ex:
         messagebox.showerror("Migration Error", str(ex))
@@ -54,10 +54,11 @@ def migrate_exel_to_psql_conf():
 ##GUI
 root = tk.Tk()
 root.title("Import exel to psql")
-root.geometry("600x500")
+root.geometry("800x600")
 
 file_path = tk.StringVar()
 connection_string = tk.StringVar()
+if_exists = tk.StringVar(value="append")
 
 tk.Label(root, text="Select exel file").pack()
 tk.Entry(root, textvariable=file_path, width=60).pack()
@@ -65,11 +66,17 @@ tk.Button(root, text="Browse", command=browse_file).pack(pady=5)
 
 tk.Label(root, text="Enter db-connection string")
 tk.Entry(root, textvariable=connection_string, width=60).pack()
-tk.Label(root, text="Example: postgersql+psycopg2://user:pass@localhost/dbname", fg="gray").pack(pady=5)
+tk.Label(root, text="Example: postgresql+psycopg2://user:pass@localhost/dbname", fg="gray").pack(pady=5)
 
 tk.Label(root, text="Table import order(top to bottom)", font=('Arial', 10, 'bold')).pack()
 sheets_listbox = tk.Listbox(root, height=8, width=50)
 sheets_listbox.pack()
+
+tk.Label(root, text="Is table exists: ", font=('Arial', 10, 'bold')).pack()
+
+tk.Radiobutton(root, text="Append (добавить)", variable=if_exists, value="append").pack(padx=20)
+tk.Radiobutton(root, text="Replace (перезаписать)", variable=if_exists, value="replace").pack(padx=20)
+tk.Radiobutton(root, text="Fail (ошибка если есть)", variable=if_exists, value="fail").pack(padx=20)
 
 tk.Button(root, text="Import data", bg="#2acaea", fg="#F5F5F5", command=migrate_exel_to_psql_conf).pack(pady=10)
 
